@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mustang AI Repair Advisor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Mustang AI Repair Advisor</h1>
+        <p>Describe your Mustang's issue, and our AI will help.</p>
+
+        <textarea id="userInput" placeholder="Type your issue here..."></textarea>
+
+        <div class="button-group">
+            <button class="round-button" onclick="getAIResponse()">Check Issue</button>
+            <button class="round-button secondary" onclick="resetChat()">New AI Chat</button>
+        </div>
+
+        <div id="loading" class="loading">🔧 Checking...</div>
+
+        <h3>AI Response:</h3>
+        <p id="response"></p>
+    </div>
+
+    <script>
+        function getAIResponse() {
+            const userInput = document.getElementById("userInput").value.trim();
+            const responseBox = document.getElementById("response");
+            const loading = document.getElementById("loading");
+
+            if (!userInput) {
+                responseBox.innerText = "Please enter a valid issue.";
+                return;
+            }
+
+            responseBox.innerText = "";
+            loading.style.display = "block";
+
+            fetch("https://api.ai21.com/studio/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Authorization": "Bearer NQhu5VsNRsgsGrg6i3KRc1y1SDFwhaQm",
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    "model": "jamba-large-1.6",
+                    "messages": [
+                        { "role": "system", "content": "You are a Mustang repair AI for Mustang Magic in Deer Park. If a user's issue is serious, tell them to visit the shop. If it's trivial, provide DIY help. If it's not a Mustang, inform them that Mustang Magic only services Mustangs." },
+                        { "role": "user", "content": userInput }
+                    ],
+                    "n": 1,
+                    "max_tokens": 2048,
+                    "temperature": 0.4,
+                    "top_p": 1,
+                    "stop": [],
+                    "response_format": { "type": "text" },
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                loading.style.display = "none";
+                if (data.choices && data.choices.length > 0) {
+                    responseBox.innerText = data.choices[0].message.content;
+                } else {
+                    responseBox.innerText = "No response generated.";
+                }
+            })
+            .catch(error => {
+                loading.style.display = "none";
+                responseBox.innerText = "Error fetching response.";
+                console.error("Error:", error);
+            });
+        }
+
+        function resetChat() {
+            document.getElementById("userInput").value = "";
+            document.getElementById("response").innerText = "";
+        }
+    </script>
+</body>
+</html>
